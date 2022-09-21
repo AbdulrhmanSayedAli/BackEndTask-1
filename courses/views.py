@@ -65,8 +65,12 @@ class SingleCourse(View):
         databaseWrite = open(DATA_BASE_DIR, "w")
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
-        updatedCourse = getCourse(body)
-        updatedCourse["id"] = id
+        updatedCourse = courses[id]
+        # update only passed data
+        for key in body:
+            if key in updatedCourse:
+                updatedCourse[key] = body[key]
+
         courses[id] = updatedCourse
         json.dump({"courses": courses}, databaseWrite)
         databaseWrite.close()
