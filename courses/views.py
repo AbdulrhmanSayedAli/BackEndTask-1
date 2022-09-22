@@ -1,10 +1,11 @@
+from wsgiref import validate
 from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
 from rest_framework import status
 import json
 import uuid
-
+from .forms import *
 DATA_BASE_DIR = "courses/db.json"
 
 
@@ -42,8 +43,12 @@ class Courses(View):
         return JsonResponse(data=courses)
 
     def post(self, request, *args, **kwargs):
-        courses = getCourses()
+        form = CourseForm(json.loads(request.body))
+        if not form.is_valid():
+            return JsonResponse(data=json.loads(form.errors.as_json()), status=status.HTTP_205_RESET_CONTENT)
+
         newCourse = getCourse(json.loads(request.body))
+        courses = getCourses()
         courses[newCourse["id"]] = newCourse
         updateData(courses)
         return JsonResponse(data={"result": "created"}, status=status.HTTP_201_CREATED)
@@ -65,6 +70,12 @@ class SingleCourse(View):
             return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
 
         body = json.loads(request.body)
+
+        form = CourseForm(body)
+        form.unRequireAll()
+        if not form.is_valid():
+            return JsonResponse(data=json.loads(form.errors.as_json()), status=status.HTTP_205_RESET_CONTENT)
+
         updatedCourse = courses[id]
         # update only passed data
         for key in body:
