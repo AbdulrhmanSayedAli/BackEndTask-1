@@ -30,6 +30,12 @@ def getCourse(body):
     }
 
 
+def updateData(courses):
+    databaseWrite = open(DATA_BASE_DIR, "w")
+    json.dump({"courses": courses}, databaseWrite)
+    databaseWrite.close()
+
+
 class Courses(View):
     def get(self, request, *args, **kwargs):
         courses = getCourses()
@@ -37,13 +43,9 @@ class Courses(View):
 
     def post(self, request, *args, **kwargs):
         courses = getCourses()
-        databaseWrite = open(DATA_BASE_DIR, "w")
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        newCourse = getCourse(body)
+        newCourse = getCourse(json.loads(request.body))
         courses[newCourse["id"]] = newCourse
-        json.dump({"courses": courses}, databaseWrite)
-        databaseWrite.close()
+        updateData(courses)
         return JsonResponse(data={"result": "created"}, status=status.HTTP_201_CREATED)
 
 
@@ -62,9 +64,7 @@ class SingleCourse(View):
         if id not in courses:
             return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        databaseWrite = open(DATA_BASE_DIR, "w")
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
+        body = json.loads(request.body)
         updatedCourse = courses[id]
         # update only passed data
         for key in body:
@@ -72,8 +72,7 @@ class SingleCourse(View):
                 updatedCourse[key] = body[key]
 
         courses[id] = updatedCourse
-        json.dump({"courses": courses}, databaseWrite)
-        databaseWrite.close()
+        updateData(courses)
         return JsonResponse(data={"result": "updated"})
 
     def delete(self, request, *args, **kwargs):
@@ -82,7 +81,5 @@ class SingleCourse(View):
         if id not in courses:
             return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
         courses.pop(id)
-        databaseWrite = open(DATA_BASE_DIR, "w")
-        json.dump({"courses": courses}, databaseWrite)
-        databaseWrite.close()
+        updateData(courses)
         return JsonResponse(data={"result": "deleted"}, status=status.HTTP_200_OK)
