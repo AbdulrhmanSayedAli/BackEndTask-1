@@ -5,6 +5,8 @@ from django.http import JsonResponse
 from rest_framework import status
 import json
 import uuid
+
+from courses.models import Course
 from .forms import *
 DATA_BASE_DIR = "courses/db.json"
 
@@ -39,18 +41,16 @@ def updateData(courses):
 
 class Courses(View):
     def get(self, request, *args, **kwargs):
-        courses = getCourses()
-        return JsonResponse(data=courses)
+        courses = list(Course.objects.values())
+        return JsonResponse(data=courses, safe=False)
 
     def post(self, request, *args, **kwargs):
-        form = CourseForm(json.loads(request.body))
+        body = json.loads(request.body)
+        form = CourseForm(body)
         if not form.is_valid():
             return JsonResponse(data=json.loads(form.errors.as_json()), status=status.HTTP_205_RESET_CONTENT)
 
-        newCourse = getCourse(json.loads(request.body))
-        courses = getCourses()
-        courses[newCourse["id"]] = newCourse
-        updateData(courses)
+        Course.objects.create(**body)
         return JsonResponse(data={"result": "created"}, status=status.HTTP_201_CREATED)
 
 
