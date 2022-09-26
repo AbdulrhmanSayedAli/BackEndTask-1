@@ -8,3 +8,6 @@ class Course (models.Model):
     description = models.TextField()
     image = models.CharField(max_length=500)
     price = models.FloatField()
+
+    def __str__(self):
+        return self.title+"("+str(self.pk)+")"

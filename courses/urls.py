@@ -4,5 +4,5 @@ from . import views
 
 urlpatterns = [
     path('', views.Courses.as_view()),
-    path('<str:id>', views.SingleCourse.as_view()),
+    path('<int:id>', views.SingleCourse.as_view()),
 ]
