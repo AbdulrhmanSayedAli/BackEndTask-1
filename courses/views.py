@@ -1,42 +1,24 @@
 from wsgiref import validate
-from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
 from rest_framework import status
 import json
-import uuid
 
 from courses.models import Course
 from .forms import *
-DATA_BASE_DIR = "courses/db.json"
 
 
-def getCourses():
-    database = open(DATA_BASE_DIR, "r")
-    result = json.load(database)["courses"]
-    database.close()
-    return result
-
-
-def generateID():
-    return str(uuid.uuid1())
-
-
-def getCourse(body):
-    return {
-        "id": generateID(),
-        "title": body["title"],
-        "subTitle": body["subTitle"],
-        "description": body["description"],
-        "image": body["image"],
-        "price": body["price"],
-    }
-
-
-def updateData(courses):
-    databaseWrite = open(DATA_BASE_DIR, "w")
-    json.dump({"courses": courses}, databaseWrite)
-    databaseWrite.close()
+def courseToJson(course):
+    return json.loads(
+        json.dumps({
+            "id": course.id,
+            "title": course.title,
+            "subTitle": course.subTitle,
+            "description": course.description,
+            "image": course.image,
+            "price": course.price,
+        }
+        ))
 
 
 class Courses(View):
@@ -56,41 +38,38 @@ class Courses(View):
 
 class SingleCourse(View):
     def get(self, request, *args, **kwargs):
-        courses = getCourses()
         id = kwargs["id"]
-        if id in courses:
-            return JsonResponse(data=courses[id])
+        try:
+            course = Course.objects.get(id=id)
+        except Course.DoesNotExist:
+            return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
+        return JsonResponse(data={**courseToJson(course)}, safe=False, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
         id = kwargs["id"]
-        courses = getCourses()
-        if id not in courses:
+        try:
+            course = Course.objects.get(id=id)
+        except Course.DoesNotExist:
             return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
 
         body = json.loads(request.body)
-
         form = CourseForm(body)
         form.unRequireAll()
         if not form.is_valid():
             return JsonResponse(data=json.loads(form.errors.as_json()), status=status.HTTP_205_RESET_CONTENT)
 
-        updatedCourse = courses[id]
-        # update only passed data
         for key in body:
-            if key in updatedCourse:
-                updatedCourse[key] = body[key]
-
-        courses[id] = updatedCourse
-        updateData(courses)
+            setattr(course, key, body[key])
+        course.save()
         return JsonResponse(data={"result": "updated"})
 
     def delete(self, request, *args, **kwargs):
         id = kwargs["id"]
-        courses = getCourses()
-        if id not in courses:
+        try:
+            course = Course.objects.get(id=id)
+        except Course.DoesNotExist:
             return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
-        courses.pop(id)
-        updateData(courses)
+
+        course.delete()
         return JsonResponse(data={"result": "deleted"}, status=status.HTTP_200_OK)
