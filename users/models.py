@@ -18,3 +18,6 @@ class User (models.Model):
     @property
     def name(self):
         return self.first_name + " " + self.last_name
+
+    def __str__(self):
+        return self.name+"("+str(self.pk)+")"
