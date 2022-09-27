@@ -1,3 +1,4 @@
+from enum import unique
 from django.db import models
 from datetime import date
 
@@ -5,7 +6,7 @@ from datetime import date
 class User (models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     password = models.CharField(max_length=20)
     birthDate = models.DateField()
 
