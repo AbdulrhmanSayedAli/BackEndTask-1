@@ -22,3 +22,10 @@ class UserForm(forms.Form):
     password = forms.CharField(
         min_length=8, max_length=20, validators=[PasswordValidator])
     birthDate = forms.DateField()
+
+    def unRequireAll(self):
+        self.fields["first_name"].required = False
+        self.fields["last_name"].required = False
+        self.fields["email"].required = False
+        self.fields["password"].required = False
+        self.fields["birthDate"].required = False

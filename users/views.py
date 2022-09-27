@@ -5,6 +5,7 @@ from rest_framework import status
 from .models import User
 from .forms import UserForm
 import json
+from .forms import UserForm
 
 
 def userToJson(user):
@@ -51,5 +52,30 @@ class SingleUser(View):
 
         return JsonResponse(data={**userToJson(user)}, safe=False, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        return JsonResponse(data={})
+    def put(self, request, *args, **kwargs):
+        id = kwargs["id"]
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        body = json.loads(request.body)
+        form = UserForm(body)
+        form.unRequireAll()
+        if not form.is_valid():
+            return JsonResponse(data=json.loads(form.errors.as_json()), status=status.HTTP_205_RESET_CONTENT)
+
+        for key in body:
+            setattr(user, key, body[key])
+        user.save()
+        return JsonResponse(data={"result": "deleted"}, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        id = kwargs["id"]
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return JsonResponse(data={"result": "404 not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user.delete()
+        return JsonResponse(data={"result": "deleted"}, status=status.HTTP_200_OK)
