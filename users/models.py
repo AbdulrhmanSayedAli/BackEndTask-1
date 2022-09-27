@@ -21,3 +21,7 @@ class User (models.Model):
 
     def __str__(self):
         return self.name+"("+str(self.pk)+")"
+
+    class Meta:
+        db_table = "myUsers"
+        ordering = ['first_name']
