@@ -1,3 +1,4 @@
 udemy/settings.py
 courses/__pycache__/
 udemy/__pycache__/
+db.sqlite3
