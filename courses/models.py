@@ -1,3 +1,13 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
-# Create your models here.
+
+class Course (models.Model):
+    title = models.CharField(max_length=100)
+    subTitle = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.CharField(max_length=500)
+    price = models.FloatField()
+
+    def __str__(self):
+        return self.title+"("+str(self.pk)+")"
