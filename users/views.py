@@ -41,6 +41,15 @@ class Users(View):
         users = filterByAge(users, min_age)
         return JsonResponse(data=users, safe=False)
 
+    def post(self, request, *args, **kwargs):
+        body = json.loads(request.body)
+        form = UserForm(body)
+        if not form.is_valid():
+            return JsonResponse(data=json.loads(form.errors.as_json()), status=status.HTTP_205_RESET_CONTENT)
+        user = User(**form.cleaned_data)
+        user.save()
+        return JsonResponse(data={"result": "created"}, safe=False, status=status.HTTP_200_OK)
+
 
 class SingleUser(View):
     def get(self, request, *args, **kwargs):
