@@ -1,4 +1,3 @@
-from enum import unique
 from django.db import models
 from datetime import date
 
@@ -24,5 +23,5 @@ class User (models.Model):
         return self.name+"("+str(self.pk)+")"
 
     class Meta:
-        db_table = "myUsers"
+        db_table = "users"
         ordering = ['first_name']
